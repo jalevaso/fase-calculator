@@ -1,1 +1,377 @@
 
+<!DOCTYPE html>
+
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fase Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  :root {
+    --bg: #0f1117; --surface: #181c27; --border: #2a2f3d;
+    --accent: #00e5a0; --warn: #ffcc00; --danger: #ff3d5a;
+    --text: #e8eaf0; --muted: #6b7280;
+    --l1: #ff6b35; --l2: #4a9eff; --l3: #00e5a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; display: flex; align-items: baseline; gap: 16px; }
+  header h1 { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); }
+  header span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; max-width: 1100px; margin: 0 auto; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; }
+  .card-title { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 8px 10px 8px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 8px; border-bottom: 1px solid rgba(42,47,61,0.5); vertical-align: middle; }
+  .dname { font-size: 13px; font-weight: 500; }
+  .dsub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .fbadge { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 2px; }
+  .fL1 { background: rgba(255,107,53,0.15); color: var(--l1); }
+  .fL2 { background: rgba(74,158,255,0.15); color: var(--l2); }
+  .fL3 { background: rgba(0,229,160,0.15); color: var(--l3); }
+  .f3F { background: rgba(180,130,255,0.15); color: #b482ff; }
+  .amp { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .psel { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 4px 6px; border-radius: 2px; cursor: pointer; width: 100%; }
+  .bronnen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .bron-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .bron-item input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; padding: 8px 10px; border-radius: 2px; text-align: right; }
+  .bron-item input:focus { outline: none; border-color: var(--accent); }
+  .bron-unit { font-size: 10px; color: var(--muted); text-align: right; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .fase-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .fase-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .fase-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; }
+  .fase-nums { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .fase-nums .big { font-weight: 600; font-size: 13px; }
+  .bar-track { height: 6px; background: var(--bg); border-radius: 1px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 1px; transition: width 0.3s ease, background 0.3s; }
+  .result-box { border: 1px solid var(--border); border-radius: 3px; padding: 16px; margin-bottom: 16px; }
+  .result-box.ok { border-color: var(--accent); background: rgba(0,229,160,0.05); }
+  .result-box.warn { border-color: var(--warn); background: rgba(255,204,0,0.05); }
+  .result-box.danger { border-color: var(--danger); background: rgba(255,61,90,0.05); }
+  .result-status { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .result-box.ok .result-status { color: var(--accent); }
+  .result-box.warn .result-status { color: var(--warn); }
+  .result-box.danger .result-status { color: var(--danger); }
+  .result-detail { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .result-detail strong { color: var(--text); }
+  .totaal { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--accent); text-align: center; margin: 8px 0 4px; }
+  .totaal-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-align: center; }
+  .btn { width: 100%; border: none; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 12px; border-radius: 2px; cursor: pointer; margin-bottom: 8px; }
+  .btn-yellow { background: var(--warn); color: #0f1117; }
+  .btn-green { background: var(--accent); color: #0f1117; }
+  .btn:hover { opacity: 0.85; }
+  .sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .opt-list { font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 2; }
+  .opt-on { color: var(--accent); }
+  .opt-off { color: var(--muted); text-decoration: line-through; }
+  .opt-batt { color: #b482ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ FASE CALCULATOR</h1>
+  <span>3× 25A · 400V</span>
+</header>
+<div class="layout">
+  <div>
+    <div class="card">
+      <div class="card-title">Apparaten &amp; prioriteit</div>
+      <table>
+        <thead><tr><th>Aan</th><th>Apparaat</th><th>Fase</th><th>Stroom</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card">
+      <div class="card-title">Bronnen</div>
+      <div class="bronnen">
+        <div class="bron-item">
+          <label>Zonnepanelen</label>
+          <input type="number" id="solar" value="0" min="0" max="20" step="0.1">
+          <div class="bron-unit">kW opwek</div>
+        </div>
+      </div>
+      <div class="card-title">Faseverdeling</div>
+      <div id="meters"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Analyse</div>
+      <div id="analyse"></div>
+      <hr class="sep">
+      <button class="btn btn-yellow" onclick="negPrijs()">⚡ Negatieve prijs modus</button>
+      <div id="optresult"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MAX = 25;
+
+// Apparaten met vaste fase en vermogen
+// fase: 'L1'|'L2'|'L3'|'3F'
+// Voor 3F: watt wordt gelijkmatig over 3 fasen verdeeld (watt/3/230 per fase)
+// Voor enkelfasig: watt/230 op die fase
+const devices = [
+  // L1 — ALS1, groepen 1-3
+  { id:'wasmachine',  name:'Wasmachine',         sub:'Siemens WM14N005NL · 2300W · L1 gr.3', fase:'L1', watt:2300, prio:'hoog', aan:false },
+  { id:'vaatwasser',  name:'Vaatwasser',         sub:'~2000W · L1 gr.2',                     fase:'L1', watt:2000, prio:'hoog', aan:false },
+  { id:'woonkamer',   name:'Woonkamer + kelder', sub:'Verlichting etc. · L1 gr.1',           fase:'L1', watt:400,  prio:'altijd', aan:true },
+  // L2 — ALS2, groepen 4-6
+  { id:'wasdroger',   name:'Wasdroger',          sub:'Siemens WT43N202NL · 2600W · L2 gr.6', fase:'L2', watt:2600, prio:'hoog', aan:false },
+  { id:'magnetron',   name:'Magnetron',          sub:'~1200W · L2 gr.5',                     fase:'L2', watt:1200, prio:'laag', aan:false },
+  { id:'keuken',      name:'Keuken + badkamer',  sub:'Verlichting etc. · L2 gr.4',           fase:'L2', watt:400,  prio:'altijd', aan:true },
+  // L3 — ALS3, groepen 7-9
+  { id:'oven',        name:'Oven',               sub:'~2000W · L3 gr.8',                     fase:'L3', watt:2000, prio:'laag', aan:false },
+  { id:'boven',       name:'Boven verdieping',   sub:'Verlichting etc. · L3 gr.7',           fase:'L3', watt:400,  prio:'altijd', aan:true },
+  { id:'hal',         name:'Hal + toilet',       sub:'Verlichting etc. · L3 gr.9',           fase:'L3', watt:200,  prio:'altijd', aan:true },
+  // Zwaar / apart
+  { id:'fornuis_l2',  name:'Fornuis (L2-helft)', sub:'AEG IDE84243IB · 7500W totaal · L2',  fase:'L2', watt:3750, prio:'laag', aan:false },
+  { id:'fornuis_l3',  name:'Fornuis (L3-helft)', sub:'AEG IDE84243IB · 7500W totaal · L3',  fase:'L3', watt:3750, prio:'laag', aan:false },
+  { id:'sauna',       name:'Saunakachel',        sub:'Harvia Spirit 6kW · 3-fase',           fase:'3F', watt:6000, prio:'laag', aan:false },
+  { id:'tesla',       name:'Laadpaal BMW 530e',   sub:'Tesla WC Gen2 · 1-fase · 3.7kW · L1', fase:'L1', watt:3680,  prio:'laag', aan:false },
+  { id:'batterij',    name:'Batterij laden',      sub:'Soluna 10K · Solis S5 · 3.6kW · 3-fase', fase:'3F', watt:3600, prio:'altijd', aan:false },
+];
+
+const PRIOS = ['altijd','hoog','midden','laag'];
+
+// Bereken ampère per fase voor één apparaat
+function ampPerFase(d) {
+  const a = d.watt / 230;
+  if (d.fase === '3F') return { L1: a/3, L2: a/3, L3: a/3 };
+  return { L1: d.fase==='L1'?a:0, L2: d.fase==='L2'?a:0, L3: d.fase==='L3'?a:0 };
+}
+
+// Bereken totale faseverdeling voor een lijst van device-ids
+// Batterij en zon worden via bronnen-velden meegegeven (negatief = laden = extra netverbruik)
+function calcLoad(ids) {
+  const solar = parseFloat(document.getElementById('solar').value) || 0;
+
+  // Zon levert stroom: vermindert netafname per fase
+  const bronPerFase = (-solar) * 1000 / 3 / 230;
+
+  let L1 = bronPerFase, L2 = bronPerFase, L3 = bronPerFase;
+
+  ids.forEach(id => {
+    const d = devices.find(x => x.id === id);
+    if (!d) return;
+    const a = ampPerFase(d);
+    L1 += a.L1; L2 += a.L2; L3 += a.L3;
+  });
+
+  // devL1/2/3 = alleen apparatenverbruik (zonder bronnen), voor visuele uitsplitsing
+  const devL1 = L1 - bronPerFase;
+  const devL2 = L2 - bronPerFase;
+  const devL3 = L3 - bronPerFase;
+
+  return {
+    L1: Math.max(0, L1),
+    L2: Math.max(0, L2),
+    L3: Math.max(0, L3),
+    devL1: Math.max(0, devL1),
+    devL2: Math.max(0, devL2),
+    devL3: Math.max(0, devL3)
+  };
+}
+
+// Render tabel met aan/uit toggles
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  devices.forEach(d => {
+    const a = ampPerFase(d);
+    const totalA = a.L1 + a.L2 + a.L3;
+    const faseLabel = d.fase === '3F' ? '3× fase' : d.fase;
+    const faseClass = d.fase === '3F' ? 'f3F' : `f${d.fase}`;
+    const ampLabel = d.fase === '3F'
+      ? `3×${(totalA/3).toFixed(1)}A`
+      : `${totalA.toFixed(1)}A`;
+
+    const checked = d.aan ? 'checked' : '';
+    const dimmed = d.aan ? '' : 'opacity:0.4;';
+
+    const tr = document.createElement('tr');
+    tr.style.cssText = dimmed;
+    tr.innerHTML = `
+      <td style="width:30px;text-align:center;">
+        <input type="checkbox" ${checked} onchange="toggle('${d.id}',this.checked)" 
+               style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">
+      </td>
+      <td><div class="dname">${d.name}</div><div class="dsub">${d.sub}</div></td>
+      <td><span class="fbadge ${faseClass}">${faseLabel}</span></td>
+      <td class="amp">${ampLabel}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggle(id, val) {
+  const d = devices.find(x => x.id === id);
+  if (d) d.aan = val;
+  renderTable();
+  update();
+}
+
+// Render fasemeters met volledige uitsplitsing per verbruiker
+function renderMeters(load, activeIds) {
+  const el = document.getElementById('meters');
+  el.innerHTML = '';
+
+  const solar = parseFloat(document.getElementById('solar').value) || 0;
+  const bronA = (-solar) * 1000 / 3 / 230;
+
+  const fases = [
+    { label:'L1', total: load.L1, color:'var(--l1)' },
+    { label:'L2', total: load.L2, color:'var(--l2)' },
+    { label:'L3', total: load.L3, color:'var(--l3)' }
+  ];
+
+  fases.forEach(f => {
+    const pct = Math.min(100, (f.total / MAX) * 100);
+    const barColor = f.total > MAX ? 'var(--danger)' : f.total > MAX * 0.88 ? 'var(--warn)' : f.color;
+
+    // Bouw uitsplitsing van individuele verbruikers op deze fase
+    let details = [];
+
+    (activeIds || []).forEach(id => {
+      const d = devices.find(x => x.id === id);
+      if (!d) return;
+      const a = ampPerFase(d);
+      const thisA = f.label === 'L1' ? a.L1 : f.label === 'L2' ? a.L2 : a.L3;
+      if (thisA > 0.05) {
+        details.push(`${d.name} ${thisA.toFixed(1)}A`);
+      }
+    });
+
+    // Balk segmenten: paars voor bronnen, fase-kleur voor apparaten
+    const bronPct = Math.min(100, (Math.max(0, bronA) / MAX) * 100);
+    const devPct  = Math.max(0, pct - bronPct);
+
+    el.innerHTML += `
+      <div class="fase-row">
+        <div class="fase-header">
+          <span class="fase-label" style="color:${f.color}">${f.label}</span>
+          <span class="fase-nums">
+            <span class="big" style="color:${barColor}">${f.total.toFixed(1)}A</span> / ${MAX}A
+          </span>
+        </div>
+        <div class="bar-track" style="position:relative;height:8px;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${bronPct}%;background:#b482ff;border-radius:1px;opacity:0.7;"></div>
+          <div style="position:absolute;left:${bronPct}%;top:0;height:100%;width:${devPct}%;background:${barColor};border-radius:1px;"></div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;">
+          ${details.join(' · ')}
+        </div>
+      </div>`;
+  });
+}
+
+// Render analyse
+function renderAnalyse(load) {
+  const maxA = Math.max(load.L1, load.L2, load.L3);
+  const onbalans = Math.max(load.L1, load.L2, load.L3) - Math.min(load.L1, load.L2, load.L3);
+  const totalW = (load.L1 + load.L2 + load.L3) * 230;
+  let cls, status, detail;
+  if (maxA > MAX) {
+    cls = 'danger'; status = '⛔ OVERBELASTING';
+    detail = `<strong>Zekering risico!</strong> Maximale fase: ${maxA.toFixed(1)}A (limiet: ${MAX}A).`;
+  } else if (maxA > MAX * 0.88) {
+    cls = 'warn'; status = '⚠ GRENSGEBIED';
+    detail = `Fase op ${Math.round(maxA/MAX*100)}%. Onbalans: ${onbalans.toFixed(1)}A${onbalans>16?' <strong style="color:var(--warn)">— boven 16A richtlijn</strong>':''}`;
+  } else {
+    cls = 'ok'; status = '✓ VEILIG';
+    detail = `Maximale fase: ${maxA.toFixed(1)}A (${Math.round(maxA/MAX*100)}%). Onbalans: ${onbalans.toFixed(1)}A${onbalans>16?' <strong style="color:var(--warn)">— boven 16A richtlijn</strong>':''}`;
+  }
+  document.getElementById('analyse').innerHTML = `
+    <div class="result-box ${cls}">
+      <div class="result-status">${status}</div>
+      <div class="result-detail">${detail}</div>
+    </div>
+    <div class="totaal">${(totalW/1000).toFixed(1)} kW</div>
+    <div class="totaal-label">totaal verbruik nu</div>`;
+}
+
+// Hoofdupdate — toont ALLEEN actieve apparaten (hoog + altijd) + bronnen
+function update() {
+  const activeIds = devices.filter(d => d.aan).map(d => d.id);
+  const load = calcLoad(activeIds);
+  renderMeters(load, activeIds);
+  renderAnalyse(load);
+}
+
+// Negatieve prijs modus: maximaal verbruik, batterij altijd laden, alle apparaten proberen
+function negPrijs() {
+  document.getElementById('solar').value = 0;
+
+  // Altijd-apparaten gaan er sowieso in (verlichting etc.)
+  const always = devices.filter(d => d.prio === 'altijd');
+  const rest   = devices.filter(d => d.prio !== 'altijd');
+  const base   = always.map(d => d.id);
+
+  // Probeer alle combinaties, vind top 3 met hoogste wattage die op alle fasen past
+  const allResults = [];
+  const n = rest.length;
+  for (let mask = 0; mask < (1 << n); mask++) {
+    const combo = [];
+    let totalW = 0;
+    for (let i = 0; i < n; i++) {
+      if (mask & (1 << i)) {
+        combo.push(rest[i].id);
+        totalW += rest[i].watt;
+      }
+    }
+    const test = [...base, ...combo];
+    const load = calcLoad(test);
+    if (load.L1 <= MAX && load.L2 <= MAX && load.L3 <= MAX) {
+      allResults.push({ ids: test, combo, totalW, load });
+    }
+  }
+  allResults.sort((a,b) => b.totalW - a.totalW);
+  const top3 = allResults.slice(0, 3);
+
+  // Zet winnende combinatie aan in checkboxen
+  if (top3.length > 0) {
+    devices.forEach(d => d.aan = top3[0].ids.includes(d.id));
+    renderTable();
+    renderMeters(top3[0].load, top3[0].ids);
+    renderAnalyse(top3[0].load);
+  }
+
+  // Toon top 3
+  let html = '';
+  top3.forEach((res, idx) => {
+    const incl = new Set(res.combo);
+    const totalKw = (res.load.L1 + res.load.L2 + res.load.L3) * 230 / 1000;
+
+    let lines = '';
+    devices.forEach(d => {
+      if (d.prio === 'altijd') return;
+      const on = incl.has(d.id);
+      lines += '<div class="' + (on ? 'opt-on' : 'opt-off') + '">' + (on ? '▶' : '○') + ' ' + d.name + '</div>';
+    });
+
+    const label = idx === 0 ? '🥇 Maximaal verbruik' : idx === 1 ? '🥈 Alternatief 2' : '🥉 Alternatief 3';
+    const border = idx === 0 ? 'border:1px solid var(--accent);padding:12px;border-radius:4px;margin-bottom:12px;'
+                             : 'border:1px solid var(--border);padding:12px;border-radius:4px;margin-bottom:12px;opacity:0.8;';
+    html += '<div style="' + border + '">' +
+      '<div class="card-title" style="margin-bottom:8px;">' + label + ' \u00b7 ' + totalKw.toFixed(1) + ' kW</div>' +
+      '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--muted);margin-bottom:6px;">' +
+        'L1: ' + res.load.L1.toFixed(1) + 'A \u00b7 L2: ' + res.load.L2.toFixed(1) + 'A \u00b7 L3: ' + res.load.L3.toFixed(1) + 'A' +
+      '</div>' +
+      '<div class="opt-list">' + lines + '</div>' +
+    '</div>';
+  });
+
+  document.getElementById('optresult').innerHTML = html;
+}
+
+document.getElementById('solar').addEventListener('input', update);
+
+renderTable();
+update();
+</script>
+
+</body>
+</html>
