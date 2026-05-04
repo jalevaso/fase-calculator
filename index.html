@@ -164,6 +164,7 @@
       <hr class="sep">
       <button class="btn btn-yellow" onclick="negPrijs()">⚡ Negatieve prijs modus</button>
       <div id="optresult"></div>
+      <button id="resetBtn" class="btn" style="background:var(--border);color:var(--muted);display:none;" onclick="resetOpt()">✕ Sluit optimalisatie</button>
     </div>
     <!-- Bronnen & faseverdeling onderaan -->
     <div class="card">
@@ -521,6 +522,17 @@ function negPrijs() {
       '<div class="opt-list">' + lines + '</div></div>';
   });
   document.getElementById('optresult').innerHTML = html;
+  document.getElementById('resetBtn').style.display = 'block';
+}
+
+function resetOpt() {
+  document.getElementById('optresult').innerHTML = '';
+  document.getElementById('resetBtn').style.display = 'none';
+  devices.forEach(d => {
+    d.aan = d.prio === 'altijd';
+  });
+  renderTable();
+  update();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
