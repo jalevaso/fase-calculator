@@ -184,7 +184,7 @@
 
 <script>
 const MAX = 25;
-const HA_URL = 'http://192.168.68.127:8123';
+const HA_URL = 'https://huisrozza.duckdns.org:8123';
 
 const HA_ENTITIES = {
   stroom_l1:   'sensor.p1_meter_stroom_fase_1',
@@ -197,16 +197,10 @@ const HA_ENTITIES = {
   batt_soc:    'sensor.solis_s5_eh1p_battery_soc',
 };
 
-// Token management
-function getToken() { return localStorage.getItem('ha_token'); }
-function saveToken() {
-  const token = document.getElementById('tokenInput').value.trim();
-  if (token) {
-    localStorage.setItem('ha_token', token);
-    document.getElementById('setupOverlay').style.display = 'none';
-    startLive();
-  }
-}
+// Token management - hardcoded
+const HA_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIyOGNlZThlMjAxMDI0Mzc1OTRlYmVlMWUxNzU1NjZjNiIsImlhdCI6MTc3ODg0MjA3MCwiZXhwIjoyMDk0MjAyMDcwfQ.rSwtjxu58qfRv1XgUdtgVoyak2JRsSLJZ5I2epapBFY';
+function getToken() { return HA_TOKEN; }
+function saveToken() { document.getElementById('setupOverlay').style.display = 'none'; startLive(); }
 function skipSetup() { document.getElementById('setupOverlay').style.display = 'none'; }
 function showSetup() { document.getElementById('setupOverlay').style.display = 'flex'; }
 
@@ -546,13 +540,8 @@ document.getElementById('solar').addEventListener('input', update);
 renderTable();
 update();
 
-// Check token en start live
-if (getToken()) {
-  startLive();
-} else {
-  document.getElementById('setupOverlay').style.display = 'flex';
-  document.getElementById('liveIndicator').innerHTML = '<span class="live-dot off"></span>Offline';
-}
+// Start direct met hardcoded token
+startLive();
 </script>
 </body>
 </html>
