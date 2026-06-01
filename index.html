@@ -63,8 +63,6 @@
   .opt-list { font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 2; }
   .opt-on { color: var(--accent); }
   .opt-off { color: var(--muted); text-decoration: line-through; }
-
-  /* Live status panel */
   .live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .live-item { background: var(--bg); border-radius: 3px; padding: 10px; }
   .live-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
@@ -74,8 +72,6 @@
   .live-dot.ok { background: var(--accent); }
   .live-dot.err { background: var(--danger); }
   .live-dot.off { background: var(--muted); }
-
-  /* Token setup */
   .setup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
   .setup-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 24px; max-width: 420px; width: 100%; }
   .setup-box h2 { font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--accent); margin-bottom: 12px; }
@@ -86,7 +82,6 @@
 </head>
 <body>
 
-<!-- Token setup overlay -->
 <div id="setupOverlay" class="setup-overlay" style="display:none;">
   <div class="setup-box">
     <h2>⚡ HA Verbinding instellen</h2>
@@ -105,11 +100,9 @@
 
 <div class="layout">
   <div>
-    <!-- Live status -->
     <div class="card" id="liveCard" style="margin-bottom:16px;">
       <div class="card-title">Live status <span id="liveAge" style="float:right;color:var(--muted);font-size:9px;"></span></div>
       <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;">
-        <!-- Links: L1/L2/L3 smal -->
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
             <span style="font-family:monospace;font-size:10px;font-weight:700;color:var(--l1);">L1</span>
@@ -124,7 +117,6 @@
             <span style="font-family:monospace;font-size:16px;font-weight:700;"><span id="liveL3">—</span><span style="font-size:10px;color:var(--muted);"> A</span></span>
           </div>
         </div>
-        <!-- Rechts: 2x2 grid -->
         <div class="live-grid" style="margin-bottom:0;">
           <div class="live-item">
             <div class="live-label">Netvermogen</div>
@@ -146,7 +138,6 @@
       </div>
     </div>
 
-    <!-- Apparaten tabel -->
     <div class="card">
       <div class="card-title">Apparaten &amp; simulator</div>
       <table>
@@ -157,7 +148,6 @@
   </div>
 
   <div style="display:flex;flex-direction:column;gap:16px;">
-    <!-- Analyse & gele knop bovenaan -->
     <div class="card">
       <div class="card-title">Analyse (simulatie)</div>
       <div id="analyse"></div>
@@ -166,7 +156,6 @@
       <div id="optresult"></div>
       <button id="resetBtn" class="btn" style="background:var(--border);color:var(--muted);display:none;" onclick="resetOpt()">✕ Sluit optimalisatie</button>
     </div>
-    <!-- Bronnen & faseverdeling onderaan -->
     <div class="card">
       <div class="card-title">Simulator</div>
       <div class="bronnen">
@@ -197,14 +186,12 @@ const HA_ENTITIES = {
   batt_soc:    'sensor.solis_s5_eh1p_battery_soc',
 };
 
-// Token management - hardcoded
-const HA_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIyOGNlZThlMjAxMDI0Mzc1OTRlYmVlMWUxNzU1NjZjNiIsImlhdCI6MTc3ODg0MjA3MCwiZXhwIjoyMDk0MjAyMDcwfQ.rSwtjxu58qfRv1XgUdtgVoyak2JRsSLJZ5I2epapBFY';
+const HA_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIyYjU1ZDg3YzEwZTg0NTgwYjI3OTMzZTM1NGVjZDU0YiIsImlhdCI6MTc4MDM0ODAwNiwiZXhwIjoyMDk1NzA4MDA2fQ.0ZhK8SpIm3YytDoZs6SKqJKRav7G1-DWzXdAzHVAF1g';
 function getToken() { return HA_TOKEN; }
 function saveToken() { document.getElementById('setupOverlay').style.display = 'none'; startLive(); }
 function skipSetup() { document.getElementById('setupOverlay').style.display = 'none'; }
 function showSetup() { document.getElementById('setupOverlay').style.display = 'flex'; }
 
-// Voortschrijdend gemiddelde — buffer van 3 metingen
 const history = { l1:[], l2:[], l3:[], power:[], solar:[], batt:[], home:[] };
 function smooth(key, val, n=3) {
   if (isNaN(val)) return NaN;
@@ -213,7 +200,6 @@ function smooth(key, val, n=3) {
   return history[key].reduce((a,b) => a+b, 0) / history[key].length;
 }
 
-// HA API call
 async function fetchHA(entityId) {
   const token = getToken();
   if (!token) return null;
@@ -227,7 +213,6 @@ async function fetchHA(entityId) {
   } catch(e) { return null; }
 }
 
-// Live data ophalen
 let liveInterval = null;
 async function fetchLiveData() {
   const token = getToken();
@@ -235,9 +220,7 @@ async function fetchLiveData() {
     document.getElementById('liveIndicator').innerHTML = '<span class="live-dot off"></span>Offline';
     return;
   }
-
   try {
-    const ids = Object.values(HA_ENTITIES);
     const res = await fetch(`${HA_URL}/api/states`, {
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
     });
@@ -254,13 +237,11 @@ async function fetchLiveData() {
     const l3 = get(HA_ENTITIES.stroom_l3);
     const power = get(HA_ENTITIES.vermogen);
     const solar = get(HA_ENTITIES.solar);
-    const battNet = get(HA_ENTITIES.batt_net);   // negatief=laden, positief=ontladen
-    const battPower = get(HA_ENTITIES.batt_power); // altijd positief
+    const battNet = get(HA_ENTITIES.batt_net);
+    const battPower = get(HA_ENTITIES.batt_power);
     const soc = get(HA_ENTITIES.batt_soc);
-    // Verbruik woning = netvermogen + zon + battNet
-    // battNet is negatief bij laden, dus optellen corrigeert automatisch
     const rawHomeW = (isNaN(power) ? 0 : power) + (isNaN(solar) ? 0 : solar) + (isNaN(battNet) ? 0 : battNet);
-    const homeW = smooth('home', rawHomeW, 10); // 10 metingen = ~100 seconden
+    const homeW = smooth('home', rawHomeW, 10);
 
     const sl1 = smooth('l1', l1);
     const sl2 = smooth('l2', l2);
@@ -273,7 +254,6 @@ async function fetchLiveData() {
     document.getElementById('liveL3').textContent = isNaN(sl3) ? '—' : sl3.toFixed(1);
     document.getElementById('livePower').textContent = isNaN(sPower) ? '—' : Math.round(sPower);
     document.getElementById('liveSolar').textContent = isNaN(sSolar) ? '—' : Math.round(sSolar);
-    // Auto-fill zonnepanelen in simulator (in kW)
     if (!isNaN(sSolar)) {
       document.getElementById('solar').value = (sSolar / 1000).toFixed(2);
       document.getElementById('solarAmp').textContent = (sSolar / 230).toFixed(1);
@@ -281,7 +261,6 @@ async function fetchLiveData() {
     }
     document.getElementById('liveHome').textContent = Math.round(homeW);
 
-    // Batterij: toon laden (↓) of ontladen (↑)
     const sBatt = smooth('batt', battNet);
     if (!isNaN(sBatt)) {
       if (sBatt < -10) document.getElementById('liveBatt').textContent = '↓' + Math.round(Math.abs(sBatt));
@@ -291,26 +270,21 @@ async function fetchLiveData() {
       document.getElementById('liveBatt').textContent = '—';
     }
 
-    // Net verbruik = totaal vermogen
-    // Indicator
     const maxLive = Math.max(l1||0, l2||0, l3||0);
     const dotClass = maxLive > MAX ? 'err' : 'ok';
     document.getElementById('liveIndicator').innerHTML =
       `<span class="live-dot ${dotClass}"></span>Live · ${new Date().toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'})}`;
     document.getElementById('liveAge').textContent = '';
 
-    // Kleur stroom: negatief = teruglevering = groen, positief = verbruik = rood/geel
-    [[liveL1, l1],[liveL2, l2],[liveL3, l3]].forEach(([elId, val]) => {});
     [['liveL1',sl1,'var(--l1)'],['liveL2',sl2,'var(--l2)'],['liveL3',sl3,'var(--l3)']].forEach(([id, val, faseColor]) => {
       const el = document.getElementById(id);
       if (isNaN(val)) { el.style.color = 'var(--muted)'; return; }
-      if (val < 0) el.style.color = 'var(--accent)';        // groen = teruglevering
-      else if (val > MAX) el.style.color = 'var(--danger)';  // rood = overbelasting
-      else if (val > MAX * 0.88) el.style.color = 'var(--warn)'; // geel = grensgebied
-      else el.style.color = faseColor;                        // normaal = faseклeur
+      if (val < 0) el.style.color = 'var(--accent)';
+      else if (val > MAX) el.style.color = 'var(--danger)';
+      else if (val > MAX * 0.88) el.style.color = 'var(--warn)';
+      else el.style.color = faseColor;
     });
 
-    // Net verbruik: negatief=groen (teruglevering), positief=rood (verbruik van net)
     const powerEl = document.getElementById('livePower');
     if (!isNaN(sPower)) {
       powerEl.style.color = sPower < 0 ? 'var(--accent)' : 'var(--danger)';
@@ -325,31 +299,25 @@ async function fetchLiveData() {
 function startLive() {
   fetchLiveData();
   if (liveInterval) clearInterval(liveInterval);
-  liveInterval = setInterval(fetchLiveData, 10000); // elke 10 seconden
+  liveInterval = setInterval(fetchLiveData, 10000);
 }
 
-// ── Apparaten ─────────────────────────────────────────────────────────────────
 const devices = [
-  // ── L1 ──────────────────────────────────────────────────────────────────────
   { id:'woonkamer',   name:'Woonkamer + kelder', sub:'Verlichting etc. · L1 gr.1',              fase:'L1', watt:400,  prio:'altijd', aan:true },
   { id:'vaatwasser',  name:'Vaatwasser',         sub:'~2000W · L1 gr.2',                        fase:'L1', watt:2000, prio:'hoog', aan:false },
   { id:'wasmachine',  name:'Wasmachine',         sub:'Siemens WM14N005NL · 2300W · L1 gr.3',    fase:'L1', watt:2300, prio:'hoog', aan:false },
   { id:'tesla',       name:'Laadpaal BMW 530e',  sub:'Tesla WC Gen2 · 1-fase · 3.7kW · L1',     fase:'L1', watt:3680, prio:'laag', aan:false },
-  { id:'batterij',    name:'Batterij laden',     sub:'Soluna 10K · Solis S5 · 3kW max · L1',     fase:'L1', watt:3000, prio:'altijd', aan:false },
-  // ── L2 ──────────────────────────────────────────────────────────────────────
+  { id:'batterij',    name:'Batterij laden',     sub:'Soluna 10K · Solis S5 · 3kW max · L1',    fase:'L1', watt:3000, prio:'altijd', aan:false },
   { id:'keuken',      name:'Keuken + badkamer',  sub:'Verlichting etc. · L2 gr.4',              fase:'L2', watt:400,  prio:'altijd', aan:true },
   { id:'wasdroger',   name:'Wasdroger',          sub:'Siemens WT43N202NL · 2600W · L2 gr.6',    fase:'L2', watt:2600, prio:'hoog', aan:false },
   { id:'fornuis_lo',  name:'Fornuis linksonder',  sub:'AEG IDE84243IB · 1 pit · ~1840W · L2',   fase:'L2', watt:1840, prio:'laag', aan:false },
-  { id:'fornuis_lo2', name:'Fornuis linksboven',  sub:'AEG IDE84243IB · 1 pit · ~1840W · L2',   fase:'L2', watt:1840,  prio:'laag', aan:false },
-  // ── L3 ──────────────────────────────────────────────────────────────────────
+  { id:'fornuis_lo2', name:'Fornuis linksboven',  sub:'AEG IDE84243IB · 1 pit · ~1840W · L2',   fase:'L2', watt:1840, prio:'laag', aan:false },
   { id:'oven',        name:'Oven',               sub:'~2000W · L2',                             fase:'L2', watt:2000, prio:'laag', aan:false },
-  // ── L3 ──────────────────────────────────────────────────────────────────────
   { id:'boven',       name:'Boven verdieping',   sub:'Verlichting etc. · L3 gr.7',              fase:'L3', watt:400,  prio:'altijd', aan:true },
   { id:'hal',         name:'Hal + toilet',       sub:'Verlichting etc. · L3 gr.9',              fase:'L3', watt:200,  prio:'altijd', aan:true },
   { id:'magnetron',   name:'Magnetron',          sub:'~1200W · L3',                             fase:'L3', watt:1200, prio:'laag', aan:false },
-  { id:'fornuis_ro',  name:'Fornuis rechtsonder', sub:'AEG IDE84243IB · 1 pit · ~1840W · L3',   fase:'L3', watt:1840,  prio:'laag', aan:false },
-  { id:'fornuis_ro2', name:'Fornuis rechtsboven', sub:'AEG IDE84243IB · 1 pit · ~1840W · L3',   fase:'L3', watt:1840,  prio:'laag', aan:false },
-  // ── 3-fase ───────────────────────────────────────────────────────────────────
+  { id:'fornuis_ro',  name:'Fornuis rechtsonder', sub:'AEG IDE84243IB · 1 pit · ~1840W · L3',   fase:'L3', watt:1840, prio:'laag', aan:false },
+  { id:'fornuis_ro2', name:'Fornuis rechtsboven', sub:'AEG IDE84243IB · 1 pit · ~1840W · L3',   fase:'L3', watt:1840, prio:'laag', aan:false },
   { id:'sauna',       name:'Saunakachel',        sub:'Harvia Spirit 6kW · 3-fase',              fase:'3F', watt:6000, prio:'laag', aan:false },
 ];
 
@@ -529,19 +497,14 @@ function negPrijs() {
 function resetOpt() {
   document.getElementById('optresult').innerHTML = '';
   document.getElementById('resetBtn').style.display = 'none';
-  devices.forEach(d => {
-    d.aan = d.prio === 'altijd';
-  });
+  devices.forEach(d => { d.aan = d.prio === 'altijd'; });
   renderTable();
   update();
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
 document.getElementById('solar').addEventListener('input', update);
 renderTable();
 update();
-
-// Start direct met hardcoded token
 startLive();
 </script>
 </body>
